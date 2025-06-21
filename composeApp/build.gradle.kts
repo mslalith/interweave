@@ -1,44 +1,27 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidApplication)
-    alias(libs.plugins.composeMultiplatform)
-    alias(libs.plugins.composeCompiler)
-    alias(libs.plugins.composeHotReload)
+    id("dev.mslalith.android.application")
+    id("dev.mslalith.kotlin.multiplatform")
+    id("dev.mslalith.compose")
+    id("dev.mslalith.koin")
     alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
 kotlin {
-    androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
-
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-        }
-    }
-
-    jvm("desktop")
-
     sourceSets {
         val desktopMain by getting
 
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.ktor.client.android)
         }
+
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+        }
+
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -49,48 +32,41 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
+            implementation(libs.koin.compose)
+//            implementation(libs.koin.compose.viewmodel)
+//            implementation(libs.koin.compose.viewmodel.navigation)
+
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+
             implementation(libs.kotlinx.serialization.core)
+            implementation(libs.kotlinx.coroutines.core)
             implementation(libs.navigationCompose)
+            implementation(libs.shimmer)
+            implementation(libs.lifecycleViewmodelCompose)
         }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-        }
+
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.ktor.client.cio)
         }
-    }
-}
 
-android {
-    namespace = "dev.mslalith.interweave"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    defaultConfig {
-        applicationId = "dev.mslalith.interweave"
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
         }
-    }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
     }
 }
 
 dependencies {
     debugImplementation(compose.uiTooling)
+}
+
+android {
+    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+    sourceSets["main"].res.srcDirs("src/androidMain/res")
+    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
 }
 
 compose.desktop {
