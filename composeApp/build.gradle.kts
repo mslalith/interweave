@@ -33,8 +33,8 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
             implementation(libs.koin.compose)
-//            implementation(libs.koin.compose.viewmodel)
-//            implementation(libs.koin.compose.viewmodel.navigation)
+            implementation(libs.koin.compose.viewmodel)
+            implementation(libs.koin.compose.viewmodel.navigation)
 
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
@@ -45,6 +45,7 @@ kotlin {
             implementation(libs.navigationCompose)
             implementation(libs.shimmer)
             implementation(libs.lifecycleViewmodelCompose)
+            implementation(libs.materialIcons)
         }
 
         desktopMain.dependencies {
