@@ -23,9 +23,8 @@ class RoomConventionPlugin : Plugin<Project> {
         val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
         extensions.configure<KotlinMultiplatformExtension> {
             sourceSets.commonMain.dependencies {
-                implementation(libs.getLibrary("room.runtime"))
-                implementation(libs.getLibrary("room.ktx"))
                 implementation(libs.getLibrary("sqlite.bundled"))
+                implementation(libs.getLibrary("room.runtime"))
             }
         }
 
