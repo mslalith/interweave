@@ -3,6 +3,7 @@ package dev.mslalith.interweave.data.database.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import dev.mslalith.interweave.koral.SyncableEntity
 import kotlinx.serialization.Serializable
 
 @Entity
@@ -10,7 +11,7 @@ import kotlinx.serialization.Serializable
 data class RestaurantEntity(
     @PrimaryKey
     @ColumnInfo(name = "id")
-    val id: String,
+    override val id: String,
     @ColumnInfo(name = "name")
     val name: String,
     @ColumnInfo(name = "cuisine")
@@ -19,4 +20,4 @@ data class RestaurantEntity(
     val locality: String?,
     @ColumnInfo(name = "rating")
     val rating: Double?
-)
+) : SyncableEntity
