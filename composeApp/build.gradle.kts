@@ -5,6 +5,7 @@ plugins {
     id("dev.mslalith.kotlin.multiplatform")
     id("dev.mslalith.compose")
     id("dev.mslalith.koin")
+    id("dev.mslalith.room")
     alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
@@ -46,6 +47,7 @@ kotlin {
             implementation(libs.shimmer)
             implementation(libs.lifecycleViewmodelCompose)
             implementation(libs.materialIcons)
+            implementation(libs.supabase.postgrest)
 
             implementation(libs.bundles.coil)
         }

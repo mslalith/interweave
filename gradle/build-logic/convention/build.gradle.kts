@@ -14,6 +14,7 @@ dependencies {
     compileOnly(libs.compose.gradlePlugin)
     compileOnly(libs.composeCompiler.gradlePlugin)
     compileOnly(libs.ksp.gradlePlugin)
+    compileOnly(libs.room.gradlePlugin)
 }
 
 gradlePlugin {
@@ -56,6 +57,11 @@ gradlePlugin {
         register("koin") {
             id = "dev.mslalith.koin"
             implementationClass = "dev.mslalith.gradle.KoinConventionPlugin"
+        }
+
+        register("roomMultiplatform") {
+            id = "dev.mslalith.room"
+            implementationClass = "dev.mslalith.gradle.RoomConventionPlugin"
         }
     }
 }
