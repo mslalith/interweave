@@ -2,6 +2,8 @@ package dev.mslalith.interweave.ui.shimmer
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,8 +26,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Balance
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ForkLeft
+import androidx.compose.material.icons.filled.StarOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -40,16 +46,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.valentinilk.shimmer.shimmer
 import dev.mslalith.interweave.core.navigation.LocalNavigator
+import dev.mslalith.interweave.core.ui.common.FillSpacer
+import dev.mslalith.interweave.core.ui.common.HorizontalSpacer
+import dev.mslalith.interweave.core.ui.common.VerticalSpacer
+import dev.mslalith.interweave.core.ui.extensions.modifyIf
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -122,8 +136,8 @@ private fun Settings(
     apiDurationMs: () -> Float,
     onApiDurationMsChange: (Float) -> Unit
 ) {
-    val settingsBorderColor = MaterialTheme.colorScheme.primaryContainer
-    val settingBackgroundColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+    val settingsBorderColor = MaterialTheme.colorScheme.primary
+    val settingBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
 
     var showSettings by remember { mutableStateOf(false) }
 
@@ -238,14 +252,26 @@ private fun ColumnScope.GithubRepoList(
 
 @Composable
 private fun GithubRepoItem(
-    modifier: Modifier = Modifier,
     githubRepo: GithubRepo,
+    modifier: Modifier = Modifier,
     isLoading: () -> Boolean = { false }
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    val transition = updateTransition(targetState = expanded && !isLoading())
+    val paddingDp by transition.animateDp { if (it) 8.dp else 0.dp }
+    val borderWidthDp by transition.animateDp { if (it) 1.dp else 0.dp }
 
     Column(
         modifier = modifier
+            .padding(all = paddingDp)
+            .modifyIf(predicate = { transition.targetState }) {
+                border(
+                    width = borderWidthDp,
+                    color = Color.Gray,
+                    shape = RoundedCornerShape(size = 4.dp)
+                )
+            }
     ) {
         ListItem(
             modifier = Modifier
@@ -301,10 +327,66 @@ private fun GithubRepoItem(
         )
 
         AnimatedVisibility(
-            visible = expanded,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            visible = expanded
         ) {
-            Text(githubRepo.description ?: "")
+            val uriHandler = LocalUriHandler.current
+
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text(githubRepo.description ?: "")
+                VerticalSpacer(12.dp)
+
+                Row {
+                    if (githubRepo.license != null) {
+                        IconLabelText(
+                            icon = Icons.Default.Balance,
+                            text = githubRepo.license.shortName
+                        )
+                    }
+                    FillSpacer()
+
+                    IconLabelText(
+                        icon = Icons.Default.ForkLeft,
+                        text = githubRepo.forks.toString()
+                    )
+                    HorizontalSpacer(12.dp)
+                    IconLabelText(
+                        icon = Icons.Default.StarOutline,
+                        text = githubRepo.stars.toString()
+                    )
+                }
+                VerticalSpacer(12.dp)
+
+                FilledTonalButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { uriHandler.openUri(githubRepo.url) }
+                ) { Text("Visit") }
+            }
         }
+    }
+}
+
+@Composable
+private fun IconLabelText(
+    icon: ImageVector,
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(size = 20.dp)
+        )
+        HorizontalSpacer(4.dp)
+        Text(
+            text = text,
+            style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)
+        )
     }
 }

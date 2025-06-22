@@ -14,7 +14,13 @@ data class GithubRepo(
     @SerialName("html_url")
     val url: String,
     @SerialName("description")
-    val description: String?
+    val description: String?,
+    @SerialName("stargazers_count")
+    val stars: Int,
+    @SerialName("forks_count")
+    val forks: Int,
+    @SerialName("license")
+    val license: GithubRepoLicense?
 ) {
     companion object {
         fun empty(id: Long) = GithubRepo(
@@ -22,7 +28,10 @@ data class GithubRepo(
             name = "",
             owner = GithubRepoOwner.EMPTY,
             url = "",
-            description = null
+            description = null,
+            stars = 0,
+            forks = 0,
+            license = null
         )
     }
 }
@@ -41,6 +50,24 @@ data class GithubRepoOwner(
             id = 0,
             name = "",
             avatarUrl = ""
+        )
+    }
+}
+
+@Serializable
+data class GithubRepoLicense(
+    @SerialName("key")
+    val key: String,
+    @SerialName("name")
+    val name: String,
+    @SerialName("spdx_id")
+    val shortName: String
+) {
+    companion object {
+        val EMPTY = GithubRepoLicense(
+            key = "",
+            name = "",
+            shortName = ""
         )
     }
 }
