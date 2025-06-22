@@ -32,12 +32,15 @@ data class GithubRepoOwner(
     @SerialName("id")
     val id: Long,
     @SerialName("login")
-    val name: String
+    val name: String,
+    @SerialName("avatar_url")
+    val avatarUrl: String
 ) {
     companion object {
         val EMPTY = GithubRepoOwner(
             id = 0,
-            name = ""
+            name = "",
+            avatarUrl = ""
         )
     }
 }

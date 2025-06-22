@@ -46,6 +46,8 @@ kotlin {
             implementation(libs.shimmer)
             implementation(libs.lifecycleViewmodelCompose)
             implementation(libs.materialIcons)
+
+            implementation(libs.bundles.coil)
         }
 
         desktopMain.dependencies {
