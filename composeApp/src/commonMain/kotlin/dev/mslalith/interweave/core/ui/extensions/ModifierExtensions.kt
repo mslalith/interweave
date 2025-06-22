@@ -6,6 +6,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 
+inline fun <T> Modifier.modifyWhenNotNull(
+    value: () -> T?,
+    block: Modifier.(T) -> Modifier
+): Modifier {
+    val v = value()
+    return if (v == null) this else this.then(other = block(v))
+}
+
 inline fun Modifier.modifyIf(
     predicate: () -> Boolean,
     block: Modifier.() -> Modifier

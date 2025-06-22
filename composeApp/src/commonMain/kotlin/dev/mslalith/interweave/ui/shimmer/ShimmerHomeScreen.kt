@@ -1,5 +1,6 @@
 package dev.mslalith.interweave.ui.shimmer
 
+import androidx.annotation.FloatRange
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDp
@@ -55,6 +56,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -64,6 +66,7 @@ import dev.mslalith.interweave.core.ui.common.FillSpacer
 import dev.mslalith.interweave.core.ui.common.HorizontalSpacer
 import dev.mslalith.interweave.core.ui.common.VerticalSpacer
 import dev.mslalith.interweave.core.ui.extensions.modifyIf
+import dev.mslalith.interweave.core.ui.extensions.modifyWhenNotNull
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -281,23 +284,22 @@ private fun GithubRepoItem(
             headlineContent = {
                 Box(
                     modifier = Modifier
-                        .then(
-                            if (!isLoading()) Modifier else Modifier
-                                .fillMaxWidth()
-                                .height(height = 16.dp)
-                                .background(color = Color.DarkGray.copy(alpha = 0.5f))
+                        .shimmerBox(
+                            widthFraction = 1f,
+                            height = 16.dp,
+                            isLoading = isLoading
                         )
                 ) { Text(githubRepo.name) }
             },
             supportingContent = {
                 Box(
-                    modifier = Modifier.then(
-                        if (!isLoading()) Modifier else Modifier
-                            .fillMaxWidth(fraction = 0.3f)
-                            .padding(top = 4.dp)
-                            .height(height = 12.dp)
-                            .background(color = Color.DarkGray.copy(alpha = 0.5f))
-                    )
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .shimmerBox(
+                            widthFraction = 0.3f,
+                            height = 12.dp,
+                            isLoading = isLoading
+                        )
                 ) { Text(githubRepo.owner.name) }
             },
             leadingContent = {
@@ -305,10 +307,7 @@ private fun GithubRepoItem(
                     modifier = Modifier
                         .clip(shape = CircleShape)
                         .size(size = 48.dp)
-                        .then(
-                            if (!isLoading()) Modifier else Modifier
-                                .background(color = Color.DarkGray.copy(alpha = 0.5f))
-                        )
+                        .shimmerBox(isLoading = isLoading)
                 ) {
                     AsyncImage(
                         model = githubRepo.owner.avatarUrl,
@@ -329,41 +328,50 @@ private fun GithubRepoItem(
         AnimatedVisibility(
             visible = expanded
         ) {
-            val uriHandler = LocalUriHandler.current
-
-            Column(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text(githubRepo.description ?: "")
-                VerticalSpacer(12.dp)
-
-                Row {
-                    if (githubRepo.license != null) {
-                        IconLabelText(
-                            icon = Icons.Default.Balance,
-                            text = githubRepo.license.shortName
-                        )
-                    }
-                    FillSpacer()
-
-                    IconLabelText(
-                        icon = Icons.Default.ForkLeft,
-                        text = githubRepo.forks.toString()
-                    )
-                    HorizontalSpacer(12.dp)
-                    IconLabelText(
-                        icon = Icons.Default.StarOutline,
-                        text = githubRepo.stars.toString()
-                    )
-                }
-                VerticalSpacer(12.dp)
-
-                FilledTonalButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { uriHandler.openUri(githubRepo.url) }
-                ) { Text("Visit") }
-            }
+            GithubRepoContent(githubRepo = githubRepo)
         }
+    }
+}
+
+
+@Composable
+private fun GithubRepoContent(
+    githubRepo: GithubRepo,
+    modifier: Modifier = Modifier
+) {
+    val uriHandler = LocalUriHandler.current
+
+    Column(
+        modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Text(githubRepo.description ?: "")
+        VerticalSpacer(12.dp)
+
+        Row {
+            if (githubRepo.license != null) {
+                IconLabelText(
+                    icon = Icons.Default.Balance,
+                    text = githubRepo.license.shortName
+                )
+            }
+            FillSpacer()
+
+            IconLabelText(
+                icon = Icons.Default.ForkLeft,
+                text = githubRepo.forks.toString()
+            )
+            HorizontalSpacer(12.dp)
+            IconLabelText(
+                icon = Icons.Default.StarOutline,
+                text = githubRepo.stars.toString()
+            )
+        }
+        VerticalSpacer(12.dp)
+
+        FilledTonalButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { uriHandler.openUri(githubRepo.url) }
+        ) { Text("Visit") }
     }
 }
 
@@ -390,3 +398,15 @@ private fun IconLabelText(
         )
     }
 }
+
+private fun Modifier.shimmerBox(
+    @FloatRange(from = 0.0, to = 1.0) widthFraction: Float? = null,
+    height: Dp? = null,
+    color: Color = Color.DarkGray.copy(alpha = 0.5f),
+    isLoading: () -> Boolean
+): Modifier = if (!isLoading()) this else this then (
+        Modifier
+            .modifyWhenNotNull(value = { widthFraction }) { fillMaxWidth(fraction = it) }
+            .modifyWhenNotNull(value = { height }) { height(height = it) }
+            .background(color = color)
+        )
