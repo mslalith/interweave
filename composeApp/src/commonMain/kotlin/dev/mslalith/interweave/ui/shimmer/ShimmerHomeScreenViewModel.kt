@@ -14,11 +14,15 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.koin.android.annotation.KoinViewModel
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.measureTimedValue
 
 data class ShimmerHomeScreenState(
     val repos: List<GithubRepo> = emptyList(),
     val searchQuery: String = "",
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val apiDurationMs: Float = 2000f
 )
 
 @KoinViewModel
@@ -31,12 +35,18 @@ class ShimmerHomeScreenViewModel(
 
     private var searchJob: Job? = null
 
+    fun updateApiDuration(durationMs: Float) {
+        _state.update { it.copy(apiDurationMs = durationMs) }
+    }
+
     fun onQueryChange(query: String) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, searchQuery = query) }
-            val repos = fetchRepos(query = query)
-            delay(2000)
+            val apiDuration = _state.value.apiDurationMs.toInt()
+            val repos = runForAtleast(apiDuration.milliseconds) {
+                fetchRepos(query = query)
+            }
             _state.update { it.copy(isLoading = false, repos = repos) }
         }
         searchJob?.invokeOnCompletion { searchJob = null }
@@ -50,6 +60,18 @@ class ShimmerHomeScreenViewModel(
             .body<FetchGithubRepoResponse>()
             .items
     }
+}
+
+private suspend fun <T> runForAtleast(
+    duration: Duration,
+    block: suspend () -> T
+): T {
+    val (result, timeTook) = measureTimedValue { block() }
+    if (timeTook < duration) {
+        val delayTime = duration - timeTook
+        delay(timeMillis = delayTime.inWholeMilliseconds)
+    }
+    return result
 }
 
 @Serializable
