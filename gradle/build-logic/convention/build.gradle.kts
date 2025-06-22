@@ -15,6 +15,9 @@ dependencies {
     compileOnly(libs.composeCompiler.gradlePlugin)
     compileOnly(libs.ksp.gradlePlugin)
     compileOnly(libs.room.gradlePlugin)
+
+    compileOnly(libs.buildkonfig.gradlePlugin)
+    compileOnly("com.codingfeline.buildkonfig:buildkonfig-compiler:${libs.versions.buildkonfig.get()}")
 }
 
 gradlePlugin {
@@ -62,6 +65,11 @@ gradlePlugin {
         register("roomMultiplatform") {
             id = "dev.mslalith.room"
             implementationClass = "dev.mslalith.gradle.RoomConventionPlugin"
+        }
+
+        register("buildKonfig") {
+            id = "dev.mslalith.buildkonfig"
+            implementationClass = "dev.mslalith.gradle.BuildKonfigConventionPlugin"
         }
     }
 }

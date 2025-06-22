@@ -6,6 +6,7 @@ plugins {
     id("dev.mslalith.compose")
     id("dev.mslalith.koin")
     id("dev.mslalith.room")
+    id("dev.mslalith.buildkonfig")
     alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
