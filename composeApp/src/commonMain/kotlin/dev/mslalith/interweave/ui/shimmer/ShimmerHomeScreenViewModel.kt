@@ -6,6 +6,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -35,6 +36,7 @@ class ShimmerHomeScreenViewModel(
         searchJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, searchQuery = query) }
             val repos = fetchRepos(query = query)
+            delay(2000)
             _state.update { it.copy(isLoading = false, repos = repos) }
         }
         searchJob?.invokeOnCompletion { searchJob = null }
