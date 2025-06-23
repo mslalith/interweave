@@ -1,6 +1,9 @@
 package dev.mslalith.interweave.koral.datasource.remote
 
 import dev.mslalith.interweave.koral.SyncableEntity
+import dev.mslalith.interweave.koral.utils.KoralResult
+import dev.mslalith.interweave.koral.utils.koralResult
+import dev.mslalith.interweave.koral.utils.mapSuccess
 import io.github.jan.supabase.SupabaseClient
 import io.ktor.client.HttpClient
 import io.ktor.client.request.delete
@@ -28,25 +31,23 @@ class SupabaseRemoteDataSource<T : SyncableEntity>(
     private val serializer: KSerializer<T>
 ) : RemoteDataSource<T> {
 
-    override suspend fun getAll(): List<T> {
-        return httpClient.get(urlString = supabaseUrl) {
+    override suspend fun getAll(): KoralResult<List<T>> = koralResult {
+        httpClient.get(urlString = supabaseUrl) {
             addSupabaseHeaders()
             parameter("select", "*")
-        }.toEntityList()
-    }
+        }
+    }.mapSuccess { it.toEntityList() }
 
-    override suspend fun getById(id: String): T? {
-        return httpClient.get(urlString = supabaseUrl) {
+    override suspend fun getById(id: String): KoralResult<T?> = koralResult {
+        httpClient.get(urlString = supabaseUrl) {
             addSupabaseHeaders()
             parameter("select", "*")
             parameter(primaryKeyColumnName, "eq.$id")
         }
-            .toEntityList()
-            .firstOrNull()
-    }
+    }.mapSuccess { it.toEntityList().firstOrNull() }
 
-    override suspend fun upsert(item: T): T {
-        return httpClient.post(urlString = supabaseUrl) {
+    override suspend fun upsert(item: T): KoralResult<T> = koralResult {
+        httpClient.post(urlString = supabaseUrl) {
             addSupabaseHeaders()
 
             header("Prefer", "return=representation,resolution=merge-duplicates")
@@ -55,11 +56,9 @@ class SupabaseRemoteDataSource<T : SyncableEntity>(
             contentType(type = ContentType.Application.Json)
             setBody(item.toJson())
         }
-            .toEntityList()
-            .first()
-    }
+    }.mapSuccess { it.toEntityList().first() }
 
-    override suspend fun delete(id: String) {
+    override suspend fun delete(id: String): KoralResult<Unit> = koralResult {
         httpClient.delete(urlString = supabaseUrl) {
             addSupabaseHeaders()
             parameter(primaryKeyColumnName, "eq.$id")
