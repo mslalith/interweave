@@ -40,18 +40,13 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
                 iosTarget.binaries.framework {
                     baseName = "ComposeApp"
                     isStatic = true
+                    linkerOpts.add("-lsqlite3")
                 }
             }
 
             jvm("desktop")
 
             targets.withType<KotlinNativeTarget>().configureEach {
-                binaries.all {
-                    // Add linker flag for SQLite. See:
-                    // https://github.com/touchlab/SQLiter/issues/77
-                    linkerOpts("-lsqlite3")
-                }
-
                 compilations.configureEach {
                     compileTaskProvider.configure {
                         compilerOptions {
